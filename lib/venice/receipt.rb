@@ -45,6 +45,10 @@ module Venice
 
     attr_accessor :in_app
 
+    def is_number?(obj)
+      return obj.to_s == obj.to_i.to_s
+    end
+
     def initialize(attributes = {})
       @quantity = Integer(attributes['quantity']) if attributes['quantity']
       @product_id = attributes['product_id']
@@ -56,9 +60,14 @@ module Venice
       @bid = attributes['bid']
       @bvrs = attributes['bvrs']
 
-      # expires_date is in ms since the Epoch, Time.at expects seconds
-      @expires_at = Time.at(attributes['expires_date'].to_i / 1000) if attributes['expires_date']
-      @expires_date_ms = Integer(attributes['expires_date']) if attributes['expires_date']
+      if attributes['expires_date'] && is_number?(attributes['expires_date'])
+        @expires_at = Time.at(attributes['expires_date'].to_i / 1000) if attributes['expires_date']
+        @expires_date_ms = Integer(attributes['expires_date']) if attributes['expires_date']
+      else
+        #server might return DateTime
+        @expires_at = DateTime.parse(attributes['expires_date']) if attributes['expires_date']
+        @expires_date_ms = Integer(attributes['expires_date_ms']) if attributes['expires_date_ms']
+      end
 
       @original_transaction_id = attributes['original_transaction_id']
       @original_purchase_date = DateTime.parse(attributes['original_purchase_date']) if attributes['original_purchase_date']
